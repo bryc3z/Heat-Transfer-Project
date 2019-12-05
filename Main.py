@@ -5,17 +5,17 @@ import PyQt5.QtWidgets
 import sys
 
 
-def sys_vals(Mp,ts):
-
-    return zeta,wn
-
-def place_poles(zeta, wn):
-
-    return s
-
-def for_the_gui(Mp,ts):
-
-    return k                            
+#def sys_vals(Mp,ts):
+#
+#    return zeta,wn
+#
+#def place_poles(zeta, wn):
+#
+#    return s
+#
+#def for_the_gui(Mp,ts):
+#
+#    return k                            
 
 class MainWindow(PyQt5.QtWidgets.QMainWindow):
 
@@ -31,17 +31,23 @@ class MainWindow(PyQt5.QtWidgets.QMainWindow):
         
         # Define and set main widgets
         widget = PyQt5.QtWidgets.QWidget()
-        self.overShoot = PyQt5.QtWidgets.QLineEdit("% Overshoot")
-        self.settlingTime = PyQt5.QtWidgets.QLineEdit("Settling Time")
+        self.mfh = PyQt5.QtWidgets.QLineEdit("Mass Flow Rate Hot [kg/s]")
+        self.mfc = PyQt5.QtWidgets.QLineEdit("Mass Flow Rate Cold [kg/s]")
+        self.length = PyQt5.QtWidgets.QLineEdit("Length of Heat Exchanger [m]")
+        num=["Number of Heat Exchangers","1","2"]
+        self.heatex = PyQt5.QtWidgets.QComboBox()
+        self.heatex.addItems(num)
         self.output = PyQt5.QtWidgets.QLineEdit("Output")
-        self.optbutton = PyQt5.QtWidgets.QPushButton("Find K",self)
-        self.optbutton.clicked.connect(self.buttonEvent)
+        self.button = PyQt5.QtWidgets.QPushButton("Solve",self)
+        self.button.clicked.connect(self.buttonEvent)
 
         widget.setFixedSize(400,225)
         layout = PyQt5.QtWidgets.QVBoxLayout()
-        layout.addWidget(self.overShoot)
-        layout.addWidget(self.settlingTime)
-        layout.addWidget(self.optbutton)
+        layout.addWidget(self.mfh)
+        layout.addWidget(self.mfc)
+        layout.addWidget(self.length)
+        layout.addWidget(self.heatex)
+        layout.addWidget(self.button)
         layout.addWidget(self.output)
         widget.setLayout(layout)  
         self.setCentralWidget(widget)
@@ -54,10 +60,9 @@ class MainWindow(PyQt5.QtWidgets.QMainWindow):
     def buttonEvent(self):
         #ensures that the inputs are floats or ints
         try:
-            os=float(self.overShoot.text())
-            ts=float(self.settlingTime.text())
-            kVals = for_the_gui(os,ts)
-            self.output.setText(str(kVals))
+            #call funciton to Solve
+            #display solution
+            pass
         except (ValueError):
             self.output.setText("Overshoot and Settling Time must be floats or ints")
 
@@ -68,4 +73,3 @@ if __name__ == '__main__':
     widget = MainWindow()
     widget.show()
     app.exec_()
-
