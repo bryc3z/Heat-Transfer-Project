@@ -110,21 +110,22 @@ def contents(MDOTh,MDOTc,T):
     
     #if there are 2 exchangers
     if T:
-        Tho, Tco, Q, REYo, REYi, UA, Hh, Hc, NUi, NUo = main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc/2,MDOTh/2,L/2)[-1]
+        Tho, Tco, Q, REYo, REYi, UA, Hh, Hc, NUi, NUo = main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc/2,MDOTh/2,L/2,10)[-1]
+        MDOTh=MDOTh/2
     #if there is only 1 echanger
     else:
-        Tho, Tco, Q, REYo, REYi, UA, Hh, Hc, NUi, NUo = main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L)[-1]
+        Tho, Tco, Q, REYo, REYi, UA, Hh, Hc, NUi, NUo = main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L,10)[-1]
     
     Contents = {'Temp of hot flow out (K)' : [str(round(Tho,6))],
-                'Temo of cold flow out (K)' : [str(round(Tco,6))],
-                'Total Heat Transfer' : [str(round(Q,6))],
+                'Temp of cold flow out (K)' : [str(round(Tco,6))],
+                'Total Heat Transfer (W/m3)' : [str(round(Q,6))],
                 'Reynolds out': [str(round(REYo,6))],
                 'Reynolds in': [str(round(REYi,6))],
-                'UA (Units)' : [str(round(UA,6))],
-                'h cold stream (W/m^2 K)':[str(round(Hc,6))],
-                'h hot stream (W/m^2 K)' :[str(round(Hh,6))],
-                'NUi' : [str(round(NUi,6))],
-                'NUo' : [str(round(NUo,6))],
+                '   UA  ' : [str(round(UA,6))],
+                'h of cold stream (W/m2 K)':[str(round(Hc,6))],
+                'h of hot stream (W/m2 K)' :[str(round(Hh,6))],
+                '  NUi  ' : [str(round(NUi,6))],
+                '  NUo  ' : [str(round(NUo,6))],
                 'Mass Flow Rate (kg/s)':[str(round(MDOTh,6))]}
     
     return Contents
@@ -137,7 +138,7 @@ class TableView(QTableWidget):
         self.setData()
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
-        self.setFixedSize(1000,100)
+        self.setFixedSize(1580,100)
         
     def setData(self): 
         horHeaders = []
