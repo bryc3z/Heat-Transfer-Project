@@ -121,8 +121,11 @@ def qvsm(Thi, Tci, tho, tco, DIAco, DIAci,DIAh,MDOTc,MDOTh,L):
 
 Results = (main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L,n))
 Results2 = (main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc/2,MDOTh/2,L/2,n))
-
-
+Results3 = Results[-1]
+Tho, Tco, Q, REYo, REYi, UA, Hh, Hc, NUi, NUo = Results3
+print (round(Tho,6))
+print (Tco)
+print (Q)
 
 
 
