@@ -6,7 +6,14 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 import sys
 
+import numpy as np
+from iapws import IAPWS97
+import csv
+import matplotlib.pyplot as plt
 
+#The following GUI code is by Bryce Zimmerman
+
+#Impliment GUI
 class MainWindow(QMainWindow):
 
     def __init__(self):
@@ -27,8 +34,17 @@ class MainWindow(QMainWindow):
         self.mfctext = QLabel("Cold Stream  Mass Flow Rate : ")
         self.mfc = QLineEdit("")
         self.mfcunits = QLabel("kg/s")
-        self.lentext = QLabel("Length of Heat Exchanger(s) :  ")
-        self.length = QLineEdit("")
+        self.Dhitext = QLabel("Hot  Tube  Inner  Diameter    :  ")
+        self.Dhi = QLineEdit("40")
+        self.Dhiunits = QLabel("mm")
+        self.Dhotext = QLabel("Hot  Tube  Outer  Diameter   :  ")
+        self.Dho = QLineEdit("60")
+        self.Dhounits = QLabel("mm")
+        self.Dctext = QLabel("Cold  Tube  Diameter             : ")
+        self.Dc = QLineEdit("90")
+        self.Dcunits = QLabel("mm")
+        self.lentext = QLabel("Heat Exchanger Total Length : ")
+        self.length = QLineEdit("80")
         self.lenunits = QLabel(" m  ")
         self.heatextext = QLabel("Number  of Heat Exchangers :")
         self.heatex = QComboBox()
@@ -55,23 +71,41 @@ class MainWindow(QMainWindow):
         Hbox3.addWidget(self.lenunits)
         
         Hbox4 = QHBoxLayout()
-        Hbox4.addWidget(self.heatextext)
-        Hbox4.addWidget(self.heatex)
+        Hbox4.addWidget(self.Dhitext)
+        Hbox4.addWidget(self.Dhi)
+        Hbox4.addWidget(self.Dhiunits)
         
         Hbox5 = QHBoxLayout()
-        Hbox5.addWidget(self.space)
-        Hbox5.addWidget(self.button)
-        Hbox5.addWidget(self.space)
+        Hbox5.addWidget(self.Dhotext)
+        Hbox5.addWidget(self.Dho)
+        Hbox5.addWidget(self.Dhounits)
+        
+        Hbox6 = QHBoxLayout()
+        Hbox6.addWidget(self.Dctext)
+        Hbox6.addWidget(self.Dc)
+        Hbox6.addWidget(self.Dcunits)
+        
+        Hbox7 = QHBoxLayout()
+        Hbox7.addWidget(self.heatextext)
+        Hbox7.addWidget(self.heatex)
+        
+        Hbox8 = QHBoxLayout()
+        Hbox8.addWidget(self.space)
+        Hbox8.addWidget(self.button)
+        Hbox8.addWidget(self.space)
         
         #Set size and vertical layouts (of horizontal ones)
-        widget.setFixedSize(400,225)
+        widget.setFixedSize(400,325)
         layout = QVBoxLayout()
         layout.addLayout(Hbox1)
         layout.addLayout(Hbox2)
-        #layout.addLayout(Hbox3)
         layout.addLayout(Hbox4)
-        layout.addWidget(self.space)
         layout.addLayout(Hbox5)
+        layout.addLayout(Hbox6)
+        layout.addLayout(Hbox3)
+        layout.addLayout(Hbox7)
+        layout.addWidget(self.space)
+        layout.addLayout(Hbox8)
         layout.addWidget(self.button)
         layout.addWidget(self.output)
         widget.setLayout(layout)  
@@ -86,10 +120,15 @@ class MainWindow(QMainWindow):
         #ensures that all inputs are valid before using them to call a function
         try:
             self.heatex
+            #getting values from text boxes
             TwoExchangers=bool(int(self.heatex.currentText())-1)
             mfh=float(self.mfh.text())
             mfc=float(self.mfc.text())
-            Contents = contents(mfh,mfc,TwoExchangers)
+            DIAh=float(self.Dhi.text())/1000
+            DIAco=float(self.Dc.text())/1000
+            DIAci=float(self.Dho.text())/1000
+            L=float(self.length.text())
+            Contents = contents(mfh,mfc, DIAh, DIAco, DIAci, L, TwoExchangers)
             self.table = TableView(Contents, 1, 11)
             self.output.setText("Valid Input")  
             self.table.show()
@@ -97,16 +136,10 @@ class MainWindow(QMainWindow):
         except (ValueError):
             self.output.setText("Input Not Valid")
             
-def contents(MDOTh,MDOTc,T):
+def contents(MDOTh, MDOTc, DIAh, DIAco, DIAci, L, T):
+    #Default
     Thi = 365 # degrees kelvin
-    DIAh = 0.040 #m
-    #Properties of cold inlet
     Tci = 285 # degrees kelvin
-    DIAco = 0.090 # m
-    DIAci = 0.060 #m
-    
-    # OTher propeties
-    L = 80
     
     #if there are 2 exchangers
     if T:
@@ -115,30 +148,29 @@ def contents(MDOTh,MDOTc,T):
     #if there is only 1 echanger
     else:
         Tho, Tco, Q, REYo, REYi, UA, Hh, Hc, NUi, NUo = main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L,10)[-1]
-    
-    Contents = {'Temp of hot flow out (K)' : [str(round(Tho,6))],
-                'Temp of cold flow out (K)' : [str(round(Tco,6))],
-                'Total Heat Transfer (W)' : [str(round(Q,6))],
-                'Reynolds out': [str(round(REYo,6))],
-                'Reynolds in': [str(round(REYi,6))],
-                '   UA  ' : [str(round(UA,6))],
-                'h of cold stream (W/m2 K)':[str(round(Hc,6))],
-                'h of hot stream (W/m2 K)' :[str(round(Hh,6))],
-                '  NUi  ' : [str(round(NUi,6))],
-                '  NUo  ' : [str(round(NUo,6))],
-                'Mass Flow Rate (kg/s)':[str(round(MDOTh,6))]}
-    
+    #set contents and round correctly
+    Contents = {'Temp of hot flow out (K)' : [str(round(Tho,3))],
+                'Temp of cold flow out (K)' : [str(round(Tco,3))],
+                'Total Heat Transfer (KW)' : [str(round(Q,3))],
+                'Reynolds out': [str(round(REYo,3))],
+                'Reynolds in': [str(round(REYi,3))],
+                '   UA  ' : [str(round(UA,3))],
+                'h of cold stream (W/m2 K)':[str(round(Hc,3))],
+                'h of hot stream (W/m2 K)' :[str(round(Hh,3))],
+                '  NUi  ' : [str(round(NUi,3))],
+                '  NUo  ' : [str(round(NUo,3))],
+                'Mass Flow Rate (kg/s)':[str(round(MDOTh,3))]}
     return Contents
- 
-class TableView(QTableWidget):
 
+#table class
+class TableView(QTableWidget):
     def __init__(self, Contents, *args):
         QTableWidget.__init__(self, *args)
         self.contents = Contents
         self.setData()
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
-        self.setFixedSize(1580,100)
+        self.setFixedSize(1500,60)
         
     def setData(self): 
         horHeaders = []
@@ -148,31 +180,11 @@ class TableView(QTableWidget):
                 newitem = QTableWidgetItem(item)
                 self.setItem(m, n, newitem)
         self.setHorizontalHeaderLabels(horHeaders)
- 
-            
-            
-import numpy as np
-from iapws import IAPWS97
-import csv
-import matplotlib.pyplot as plt
-
-# These properties all need to be input via the GUI
-#Properties of hot inlet
-Thi = 365 # degrees kelvin
-MDOTh = 10 # Kg / s
-DIAh = 0.040 #m
 
 
-#Properties of cold inlet
-
-Tci = 285 # degrees kelvin
-MDOTc = 8 # Kg / s
-DIAco = 0.090 # m
-DIAci = 0.060 #m
-
-# OTher propeties
-L = 80
-n = 10
+'''
+Following are the functions doing the actual calculation created by Caleb Huss
+'''
 def ffact(Rey):
     return (0.790* np.log(Rey) - 1.64)**-2
 def NumCalcs(rho,vel,dia,mu,Pr): #Where rho is density, vel is mean velocity, dia is diameter of the thing and mu is viscosity
@@ -265,8 +277,16 @@ def main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L,n):
        i += 1
     return results
 
-Results = (main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L,n))
-Results2 = (main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc/2,MDOTh/2,L/2,n))
+def qvsm(Thi, Tci, tho, tco, DIAco, DIAci,DIAh,MDOTc,MDOTh,L):
+    """
+    This function will compare f with from mcodonalsd
+    """
+    q=[]
+    q.append(OutletCalc(Thi, Tci, tho, tco, DIAco, DIAci,DIAh,MDOTc,5,L))
+    plt.show("I'm always winnie")
+#
+#Results = (main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc,MDOTh,L,n))
+#Results2 = (main(Thi, Tci, DIAco, DIAci,DIAh,MDOTc/2,MDOTh/2,L/2,n))
     
 
 if __name__ == '__main__':
