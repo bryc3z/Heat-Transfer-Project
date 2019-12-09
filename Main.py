@@ -118,7 +118,7 @@ def contents(MDOTh,MDOTc,T):
     
     Contents = {'Temp of hot flow out (K)' : [str(round(Tho,6))],
                 'Temp of cold flow out (K)' : [str(round(Tco,6))],
-                'Total Heat Transfer (W/m3)' : [str(round(Q,6))],
+                'Total Heat Transfer (W)' : [str(round(Q,6))],
                 'Reynolds out': [str(round(REYo,6))],
                 'Reynolds in': [str(round(REYi,6))],
                 '   UA  ' : [str(round(UA,6))],
